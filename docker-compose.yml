@@ -1,0 +1,99 @@
+version: '3.8'
+
+# LUMEN Development Docker Compose
+# One-command dev startup: docker-compose up --build
+#
+# Access:
+#   - Frontend dev server: http://localhost:5173
+#   - Backend API        : http://localhost:9000/api/lumen
+#   - WebSocket          : ws://localhost:9000/ws
+#   - MQTT broker        : mqtt://localhost:1883
+#   - PostgreSQL         : localhost:5432
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: lumen-db
+    environment:
+      POSTGRES_USER: lumen
+      POSTGRES_PASSWORD: Lum3n.pasS!
+      POSTGRES_DB: lumendb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./backend/src/db/migration_002_projects.sql:/docker-entrypoint-initdb.d/02-migration.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lumen"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lumen-network
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: lumen-mqtt
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    networks:
+      - lumen-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lumen-backend
+    environment:
+      NODE_ENV: development
+      POSTGRES_URL: postgres://lumen:Lum3n.pasS!@db:5432/lumendb
+      PORT: 9000
+      SECRET_KEY: change_me_before_site_test
+      MQTT_URL: mqtt://mosquitto:1883
+      MQTT_TOPIC: centrale/+/data
+    ports:
+      - "9000:9000"
+    depends_on:
+      db:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+    volumes:
+      - ./backend/src:/app/src
+    command: npm run dev
+    networks:
+      - lumen-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lumen-frontend
+    environment:
+      VITE_API_URL: /api/lumen
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./vite.config.ts:/app/vite.config.ts
+    command: pnpm run dev -- --host
+    networks:
+      - lumen-network
+
+volumes:
+  postgres_data:
+  mosquitto_data:
+  mosquitto_logs:
+
+networks:
+  lumen-network:
+    driver: bridge

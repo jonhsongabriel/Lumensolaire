@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: lumen-db
+    environment:
+      POSTGRES_USER: lumen
+      POSTGRES_PASSWORD: Lum3n.pasS!
+      POSTGRES_DB: lumendb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lumen"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lumen-backend
+    environment:
+      POSTGRES_URL: postgres://lumen:Lum3n.pasS!@db:5432/lumendb
+      PORT: 9000
+      SECRET_KEY: change_me_before_site_test
+      MQTT_URL: mqtt://broker.hivemq.com:1883
+      MQTT_TOPIC: centrale/+/data
+    ports:
+      - "9000:9000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src
+    command: npm run dev
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lumen-frontend
+    environment:
+      VITE_API_URL: /api/lumen
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+    command: npm run dev -- --host
+
+volumes:
+  postgres_data:

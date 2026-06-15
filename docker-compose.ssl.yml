@@ -1,0 +1,25 @@
+version: '3.8'
+
+# Docker Compose for SSL certificate generation with Certbot
+# Usage: docker-compose -f docker-compose.ssl.yml run --rm certbot
+
+services:
+  certbot:
+    image: certbot/certbot:latest
+    container_name: lumen-certbot
+    volumes:
+      - ./nginx/ssl:/etc/letsencrypt
+      - ./nginx/www:/var/www/lumen
+    entrypoint: >
+      sh -c "certbot certonly
+      --webroot
+      --webroot-path=/var/www/lumen
+      --email $$CERTBOT_EMAIL
+      --agree-tos
+      --no-eff-email
+      -d $$CERTBOT_DOMAIN
+      $$CERTBOT_FLAGS"
+    environment:
+      CERTBOT_EMAIL: ${CERTBOT_EMAIL:-admin@example.com}
+      CERTBOT_DOMAIN: ${CERTBOT_DOMAIN:-lumen.example.com}
+      CERTBOT_FLAGS: ${CERTBOT_FLAGS:---dry-run}

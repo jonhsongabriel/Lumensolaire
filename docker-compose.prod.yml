@@ -1,0 +1,94 @@
+version: '3.8'
+
+# LUMEN Production Docker Compose
+# One-command startup: docker-compose -f docker-compose.prod.yml up --build
+#
+# Services:
+#   - db        : PostgreSQL 15 (data persisted in named volume)
+#   - mosquitto : MQTT broker for SCADA/ESP32 data
+#   - backend   : Node.js Express API + WebSocket server
+#   - nginx     : Serves frontend static files + reverse proxy API/WebSocket
+#
+# Access:
+#   - Web app   : http://localhost
+#   - API       : http://localhost/api/lumen
+#   - WebSocket : ws://localhost/ws
+#   - MQTT      : mqtt://localhost:1883
+#   - PostgreSQL: localhost:5432
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: lumen-db-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lumen
+      POSTGRES_PASSWORD: Lum3n.pasS!
+      POSTGRES_DB: lumendb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./backend/src/db/migration_002_projects.sql:/docker-entrypoint-initdb.d/02-migration.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lumen"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lumen-network
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: lumen-mqtt-prod
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    networks:
+      - lumen-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lumen-backend-prod
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      POSTGRES_URL: postgres://lumen:Lum3n.pasS!@db:5432/lumendb
+      PORT: 9000
+      SECRET_KEY: change_me_before_production_deployment
+      MQTT_URL: mqtt://mosquitto:1883
+      MQTT_TOPIC: centrale/+/data
+    depends_on:
+      db:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+    networks:
+      - lumen-network
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: lumen-nginx-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - lumen-network
+
+volumes:
+  postgres_data:
+  mosquitto_data:
+  mosquitto_logs:
+
+networks:
+  lumen-network:
+    driver: bridge
