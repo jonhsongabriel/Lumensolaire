@@ -13,11 +13,11 @@ version: '3.8'
 services:
   db:
     image: postgres:15-alpine
-    container_name: lumen-db
+    container_name: lumen
     environment:
       POSTGRES_USER: lumen
       POSTGRES_PASSWORD: Lum3n.pasS!
-      POSTGRES_DB: lumendb
+      POSTGRES_DB: lumen
     ports:
       - "5432:5432"
     volumes:
