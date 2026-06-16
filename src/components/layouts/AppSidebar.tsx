@@ -105,12 +105,12 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="border-b border-sidebar-border p-2">
+      <SidebarHeader className="border-b border-sidebar-border p-1">
         <div className="flex items-center justify-center">
           <img
             src={logo}
             alt="LUMEN"
-            className="h-15 w-auto object-contain cursor-pointer"
+            className="h-10 w-auto object-contain cursor-pointer"
             onClick={() => navigate('/')}
           />
         </div>
