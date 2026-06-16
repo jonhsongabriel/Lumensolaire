@@ -110,7 +110,7 @@ export function AppSidebar() {
           <img
             src={logo}
             alt="LUMEN"
-            className="h-20 w-auto object-contain cursor-pointer"
+            className="h-15 w-auto object-contain cursor-pointer"
             onClick={() => navigate('/')}
           />
         </div>
