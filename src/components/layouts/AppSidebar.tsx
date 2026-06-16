@@ -104,32 +104,60 @@ export function AppSidebar() {
   );
 
   return (
-    <SidebarHeader className="border-b border-sidebar-border p-4">
-  <div className="flex items-center gap-3">
+    <Sidebar>
+      <SidebarHeader className="border-b border-sidebar-border p-4">
+        <div className="flex items-center gap-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+            <Zap className="h-6 w-6 text-primary-foreground" />
+          </div>
+          <div className="flex flex-col">
+            <img
+              src={logo}
+              alt="LUMEN"
+              className="h-6 w-auto object-contain"
+            />
+            <span className="text-xs text-sidebar-foreground/70">Supervision Énergétique</span>
+          </div>
+        </div>
+      </SidebarHeader>
 
-    {/* LOGO clickable (retour dashboard) */}
-    <div
-      className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 hover:bg-primary/20 transition cursor-pointer overflow-hidden"
-      onClick={() => navigate('/')}
-    >
-      <img
-        src={logo}
-        alt="LUMEN"
-        className="h-8 w-8 object-contain"
-      />
-    </div>
+      <SidebarContent>
+        {/* Bouton d'action principal : Ajouter une centrale */}
+        {(profile?.role === 'admin' || profile?.role === 'engineer') && (
+          <div className="px-3 pt-4">
+            <Button
+              className="w-full h-10 justify-start gap-2 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+              onClick={() => navigate('/add-site')}
+            >
+              <Plus className="h-4 w-4 shrink-0" />
+              <span>Ajouter Centrale</span>
+            </Button>
+          </div>
+        )}
 
-    {/* Texte branding */}
-    <div className="flex flex-col leading-tight">
-      <span className="text-sm font-bold text-sidebar-foreground tracking-wide">
-        LUMEN
-      </span>
-      <span className="text-xs text-sidebar-foreground/70">
-        Supervision Énergétique
-      </span>
-    </div>
-
-  </div>
-</SidebarHeader>
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {visibleItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton
+                      onClick={() => navigate(item.path)}
+                      isActive={isActive}
+                      tooltip={item.title}
+                    >
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
   );
 }
