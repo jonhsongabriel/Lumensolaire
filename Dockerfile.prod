@@ -1,10 +1,20 @@
 # Production Dockerfile for LUMEN Frontend
 # Multi-stage build: Node.js build → Nginx serve
+#
+# Build args (survocables au build):
+#   VITE_API_URL    : URL de l'API (défaut: /api/lumen)
+#   VITE_WS_URL     : URL WebSocket (défaut: auto-détecté via window.location.host)
 
 # Stage 1: Build
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
+
+ARG VITE_API_URL=/api/lumen
+ARG VITE_WS_URL=
+
+ENV VITE_API_URL=${VITE_API_URL}
+ENV VITE_WS_URL=${VITE_WS_URL}
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
@@ -12,8 +22,6 @@ RUN npm install -g pnpm && pnpm install
 
 # Copy source and build
 COPY . .
-ENV VITE_API_URL=/api/lumen
-ENV VITE_WS_URL=ws://localhost/ws
 RUN pnpm run build
 
 # Stage 2: Serve with Nginx
