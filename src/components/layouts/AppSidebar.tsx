@@ -27,7 +27,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
-import logo from '@/image/logo-lumen-vert.png';
+import logo from '@/image/logo-lumen.png';
 
 export function AppSidebar() {
   const { profile } = useAuth();
@@ -105,7 +105,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="border-b border-sidebar-border p-4">
+      <SidebarHeader className="border-b border-sidebar-border p-2">
         <div className="flex items-center justify-center">
           <img
             src={logo}
