@@ -106,21 +106,15 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border p-4">
-        <div className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-            <Zap className="h-6 w-6 text-primary-foreground" />
-          </div>
-          <div className="flex flex-col">
-            <img
-              src={logo}
-              alt="LUMEN"
-              className="h-6 w-auto object-contain"
-            />
-            <span className="text-xs text-sidebar-foreground/70">Supervision Énergétique</span>
-          </div>
+        <div className="flex items-center justify-center">
+          <img
+            src={logo}
+            alt="LUMEN"
+            className="h-10 w-auto object-contain cursor-pointer"
+            onClick={() => navigate('/')}
+          />
         </div>
       </SidebarHeader>
-
       <SidebarContent>
         {/* Bouton d'action principal : Ajouter une centrale */}
         {(profile?.role === 'admin' || profile?.role === 'engineer') && (
