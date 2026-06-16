@@ -21,9 +21,7 @@ ENV VITE_WS_URL=${VITE_WS_URL}
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
 
-RUN npm install -g pnpm \
-    && pnpm config set confirmModulesPurge false \
-    && pnpm install
+RUN npm install -g pnpm \  && pnpm install
 
 # Copy source and build
 COPY . .
