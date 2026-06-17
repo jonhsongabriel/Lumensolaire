@@ -1,5 +1,5 @@
 // Frontend API client for LUMEN Backend
-const API_URL = import.meta.env.VITE_API_URL || '/api/lumen';
+const API_ = import.meta.env.VITE_API_URL || '/api/lumen';
 
 function getToken(): string | null {
   return localStorage.getItem('lumen_token');
